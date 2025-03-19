@@ -353,6 +353,11 @@ class JMLUnparser:
             else_branch = self.expr(node.children[2])
         return f"{condition} ? {if_branch} : {else_branch}"
 
+    def expr_op_quantifier(self, node):
+        # // JML \quantifier(a; b; c)
+        # expr_op_quantifier: UNARY_OP? "\\" JML_QUANTIFIER "(" var_decl ";" (expr?  ";")? expr ")"
+        return self.expr_quantifier(node)
+
     def expr_quantifier(self, node):
         # // JML \quantifier a; b; c: right-associative ternary
         # expr_quantifier: UNARY_OP? "\\" JML_QUANTIFIER var_decl ";" (expr?  ";")? expr
@@ -364,18 +369,17 @@ class JMLUnparser:
             unary_op = ""
         quantifier = node.children[0 + offset].value
         init = self.var_decl(node.children[1 + offset])
-        range = self.expr(node.children[2 + offset])
+        bounds = self.expr(node.children[2 + offset])
         condition = self.expr(node.children[3 + offset])
 
+        return self.expr_quantifier_kind(node, unary_op, quantifier, init, bounds, condition)
+        
+    def expr_quantifier_kind(self, node, unary_op, quantifier, init, bounds, condition):
         if node.data.value == 'expr_op_quantifier':
-            return f"{unary_op}\\{quantifier}({init}; {range}; {condition})"  # \forall() with variables and expression
+            return f"{unary_op}\\{quantifier}({init}; {bounds}; {condition})"  # \forall() with variables and expression
         else:
-            return f"{unary_op}\\{quantifier} {init}; {range}; {condition}"  # \forall with variables and expression
-    
-    def expr_op_quantifier(self, node):
-        # // JML \quantifier(a; b; c)
-        # expr_op_quantifier: UNARY_OP? "\\" JML_QUANTIFIER "(" var_decl ";" (expr?  ";")? expr ")"
-        return self.expr_quantifier(node)
+            return f"{unary_op}\\{quantifier} {init}; {bounds}; {condition}"  # \forall with variables and expression
+
         
     def var_decl(self, node):
         # var_decl: type ID
@@ -435,6 +439,9 @@ class JMLUnparser:
             index_expr = self.index(node.children[1])
             index = f"[{index_expr}]"
         
+        return self.jml_field_kind(node, jml_field_name, index)
+    
+    def jml_field_kind(self, node, jml_field_name, index):
         return f"\\{jml_field_name}{index}"
 
     def jml_method(self, node):
@@ -446,6 +453,9 @@ class JMLUnparser:
             # Optional arguments
             args = self.args(node.children[1])
         
+        return self.jml_method_kind(node, jml_method_name, args)
+    
+    def jml_method_kind(self, node, jml_method_name, args):
         return f"\\{jml_method_name}({args})"
 
     def jml_method_type(self, node):
