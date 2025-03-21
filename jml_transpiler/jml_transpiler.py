@@ -19,6 +19,7 @@ class JML2JavaTranspiler(JMLUnparser):
         # start:
         return self.expr(node.children[0], bracketing)
 
+    # TODO: use for(int i; true; ++i) if (!condition) break else code; to compute dynamic loop conditions inline
     def expr_quantifier_kind(self, node, unary_op, quantifier, init, bounds, condition):
         lower_bounds = bounds
         variable_types  = "int"  # TODO init
