@@ -257,14 +257,14 @@ class JMLUnparser:
     def __init__(self):
         super().__init__()
 
-    def unparse(self, tree):
-        return self.start(tree)
+    def unparse(self, tree, bracketing=False):
+        return self.start(tree, bracketing)
 
-    def start(self, node):
+    def start(self, node, bracketing=False):
         # start: expr ";"
-        return self.expr(node.children[0]) + ";"
+        return self.expr(node.children[0], bracketing) + ";"
 
-    def expr(self, node):
+    def expr(self, node, bracketing=False):
         # expr: 
         # | expr_if 
         # | expr_quantifier
@@ -282,7 +282,10 @@ class JMLUnparser:
                 expr_code = self.expr_infix(expr)
 
             #return expr_code
-            return f" ( {expr_code} ) "
+            if bracketing:
+                return f" ( {expr_code} ) "
+            else:
+                return f"{expr_code}"
         return ""  # e.g. foo() with empty args->expr
 
     def expr_infix(self, node):
